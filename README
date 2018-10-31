@@ -1,0 +1,45 @@
+Information for compiling and running the NetSig binary
+
+To run the code, just compile:
+g++ -O3 runNetwork.cpp -o runNetwork
+
+and run:
+./runNetwork -p input/pvals -j 1 -J 1 -n input/network.sym -N test -i 1000 -P 3 -g -o .
+
+To compile for multiple threads:
+g++ -O3 -fopenmp runNetwork.cpp -o runNetwork
+
+Compiling Notes:
+Under MacOXX, as clang is the default compiler, the compilation will likely fail. Pleas use gcc (install using MacPorts, Fink etc.)
+Also, using gcc5 will increase the performance significantly. 
+
+Please use the --help parameter to see how to run NetSig.
+
+A short explanation for some of the parameters used in the test run is given below.
+runNetwork -p input/pvals -j 1 -J 1 -n input/network.sym -N test -i 1000 -P 3 -g -o .
+-p input/pvals
+specifies the file for the p-values. Found in the input directory these are from the Lawrence et al. manuscript referenced in the manuscript.
+-n input/network.sym
+specifies the network (in this case InWeb 3) to use
+-j, -J
+this is the lazy mens way of parallelizing. -J defines the number of jobs to run, -j tells the script which job it has to process.
+So for running three jobs in parallel, one would submit three the following two jobs:
+runNetwork -p input/pvals -j 1 -J 3 -n input/network.sym -N test -i 1000 -P 3 -g -o .
+runNetwork -p input/pvals -j 2 -J 3 -n input/network.sym -N test -i 1000 -P 3 -g -o .
+runNetwork -p input/pvals -j 3 -J 3 -n input/network.sym -N test -i 1000 -P 3 -g -o .
+this will create three result files which can be easily joined.
+-N test
+This sets the name for the job, used in the result file for identification
+-i 1000
+This sets the number of iterations, defining the miuimal p-Value that can be caluclated (1/iterations)
+-P 3
+The column index in the p-Value file that should be used. Please note that the first column has index 0 (so so 3 corresponds to column 4)
+The file should be tab-seperated
+-o
+The output directory for result files.
+
+#Tab seperated network into sif format
+gawk '(ARGIND==1){a[$1]=$2}(ARGIND==2){if($1 in a){if($2 in a){print a[$1]"-"a[$2]}}}' InWeb3.HUGO.mapping network.sym > a.sif
+
+#Another example for running a binary network with mapping file:
+runNetwork -p input/pvals -j 1 -J 1 -n input/network0.bin -N test -i 1000 -P 3 -g -o . -M input/InWeb3.HUGO.mapping -V -C
